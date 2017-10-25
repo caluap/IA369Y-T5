@@ -1,5 +1,6 @@
 import tweepy
-import keys
+import json
+import keys #meus dados secretos de login!
 
 # Create variables for each key, secret, token
 auth = tweepy.OAuthHandler(keys.consumer_key, keys.consumer_secret)
@@ -26,19 +27,32 @@ api = tweepy.API(auth)
 #     - retweets
 # passo 3: salvar os tweets em um arquivo json (manter formato do twitter). 
 
-n_usuarios_emotivos = 4
+n_usuarios_confessionais = 5
 
 filtros = '-filter:retweets -filter:replies -filter:links -filter:images -filter:videos'
 
-tweets_emotivos = tweepy.Cursor(api.search, q='"me sentindo" ' + filtros, lang="pt").items(n_usuarios_emotivos)
+tweets_confessionais = tweepy.Cursor(api.search, q='"me sentindo" ' + filtros, lang="pt").items(n_usuarios_confessionais)
 
-tweets_de_usuarios_emotivos = {}
-n_tweets = 10
+tweets_de_usuarios_confessionais = {}
+n_tweets = 5
 
   # id_tweets.append((tweet._json['user']['screen_name'],tweet.id))
 
-for tweet in tweets_emotivos:
+for tweet in tweets_confessionais:
   quem = tweet._json['user']['screen_name']
   tweets = tweepy.Cursor(api.search, q="from:%s %s" % (quem,filtros)).items(n_tweets)
-  for s in tweets:
-    print("%s > %s" % (quem,s.text))
+  tweets_de_usuarios_confessionais[quem] = []
+  for tweet in tweets:
+    dados = {
+      'text': tweet.text,
+      'geo': str(tweet.geo),
+      'id': str(tweet.id),
+      'hashtags': tweet.entities['hashtags'],
+      # 'coordinates':str(tweet.coordinates),
+      'timestamp': str(tweet.created_at)
+    }
+    tweets_de_usuarios_confessionais[quem].append(dados)
+
+with open('data.json','w') as fp:
+   json.dump(dict(tweets_de_usuarios_confessionais), fp)
+
