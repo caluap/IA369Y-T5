@@ -26,31 +26,19 @@ api = tweepy.API(auth)
 #     - retweets
 # passo 3: salvar os tweets em um arquivo json (manter formato do twitter). 
 
+n_usuarios_emotivos = 4
+
+filtros = '-filter:retweets -filter:replies -filter:links -filter:images -filter:videos'
+
+tweets_emotivos = tweepy.Cursor(api.search, q='"me sentindo" ' + filtros, lang="pt").items(n_usuarios_emotivos)
+
+tweets_de_usuarios_emotivos = {}
 n_tweets = 10
 
-filtro = '-filter:retweets -filter:replies -filter:links -filter:images -filter:videos'
-
-# pega tweets de um ano atrás, pois quero que o passado e o futuro sejam suficientemente grandes
-tweets_emotivos = tweepy.Cursor(api.search, q='me sentindo until:2017-01-01 ' + filtro, lang="pt").items(n_tweets)
-
-for t in tweets_emotivos:
-  print(t.text)
-
-id_tweets = []
+  # id_tweets.append((tweet._json['user']['screen_name'],tweet.id))
 
 for tweet in tweets_emotivos:
-  id_tweets.append((tweet._json['user']['screen_name'],tweet.id))
-
-n_anteriores = 5
-n_proximos = 5
-
-for (quem, id_tweet) in id_tweets:
-  anteriores = []
-  proximos = []
-  
-  tweets_anteriores = tweepy.Cursor(api.user_timeline,screen_name=quem,result_type='recent',max_id=id_tweet).items(n_anteriores)
-  tweets_proximos =  tweepy.Cursor(api.user_timeline,screen_name=quem,result_type='recent',since_id=id_tweet).items(n_proximos)
-  for s in tweets_anteriores:
-    print("%s > %s" % (quem,s.text))
-  for s in tweets_proximos:
+  quem = tweet._json['user']['screen_name']
+  tweets = tweepy.Cursor(api.search, q="from:%s %s" % (quem,filtros)).items(n_tweets)
+  for s in tweets:
     print("%s > %s" % (quem,s.text))
