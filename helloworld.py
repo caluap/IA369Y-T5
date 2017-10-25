@@ -15,7 +15,10 @@ api = tweepy.API(auth)
 # tweet = 'apparently, status can\'t be duplicates'
 # api.update_status(status=tweet)
 
-results = api.search(q="\"me sentindo\"", lang="pt")
+for status in tweepy.Cursor(api.user_timeline, screen_name='calua').items(20):
+  print(status.text)
 
-for result in results:
-    print(result)
+
+# results = api.search(q="\"me sentindo\"", lang="pt")
+# for result in results:
+    # print(result)
