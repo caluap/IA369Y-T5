@@ -7,11 +7,6 @@ auth = tweepy.OAuthHandler(keys.consumer_key, keys.consumer_secret)
 auth.set_access_token(keys.access_token, keys.access_token_secret)
 api = tweepy.API(auth)
 
-# Set up OAuth and integrate with API
-auth = tweepy.OAuthHandler(keys.consumer_key, keys.consumer_secret)
-auth.set_access_token(keys.access_token, keys.access_token_secret)
-api = tweepy.API(auth)
-
 # Write a tweet to push to our Twitter account
 # tweet = 'apparently, status can\'t be duplicates'
 # api.update_status(status=tweet)
@@ -27,25 +22,38 @@ api = tweepy.API(auth)
 #     - retweets
 # passo 3: salvar os tweets em um arquivo json (manter formato do twitter). 
 
-n_usuarios_confessionais = 5
+n_usuarios_confessionais = 1000
 
 filtros = '-filter:retweets -filter:replies -filter:links -filter:images -filter:videos'
 
-tweets_confessionais = tweepy.Cursor(api.search, q='"me sentindo" ' + filtros, lang="pt").items(n_usuarios_confessionais)
+
+print(">>> quem fala “me sentindo”? <<<")
+tweets_confessionais = tweepy.Cursor(api.search, q='"me sentindo" ' + filtros, lang="pt", wait_on_rate_limit = True, wait_on_rate_limit_notify = True).items(n_usuarios_confessionais)
+
+cidade1 = 'Rio de Janeiro, Brasil'
+cidade2 = 'São Paulo, Brasil'
+
+twitteiros = [[] for _ in range(2)]
+
+for t in tweets_confessionais:
+  if t._json['user']['location'] == cidade1: twitteiros[0].append(t._json['user']['screen_name'])
+  if t._json['user']['location'] == cidade2: twitteiros[1].append(t._json['user']['screen_name'])
+
+print(f">>> {len(twitteiros[0])} cariocas, {len(twitteiros[1])} paulistanos <<<")
 
 tweets_de_usuarios_confessionais = {}
-n_tweets = 5
+n_tweets = 200
 
-  # id_tweets.append((tweet._json['user']['screen_name'],tweet.id))
+twitteiros = twitteiros[0] + twitteiros[1]
 
-for tweet in tweets_confessionais:
-  quem = tweet._json['user']['screen_name']
-  tweets = tweepy.Cursor(api.search, q="from:%s %s" % (quem,filtros)).items(n_tweets)
+for quem in twitteiros:
+  print(f">>> buscando {n_tweets} de {quem} <<<")
+  tweets = tweepy.Cursor(api.search, q="from:%s %s" % (quem,filtros), wait_on_rate_limit = True, wait_on_rate_limit_notify = True).items(n_tweets)
   tweets_de_usuarios_confessionais[quem] = []
   for tweet in tweets:
     dados = {
       'text': tweet.text,
-      'geo': str(tweet.geo),
+      'location': tweet._json['user']['location'],
       'id': str(tweet.id),
       'hashtags': tweet.entities['hashtags'],
       # 'coordinates':str(tweet.coordinates),
